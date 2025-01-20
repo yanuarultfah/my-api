@@ -4,6 +4,7 @@ import (
 	"my-api/controllers/ping"
 	"my-api/controllers/thirdparty"
 	"my-api/controllers/users"
+	"my-api/controllers/workerpool"
 )
 
 func mapUrls() {
@@ -12,4 +13,5 @@ func mapUrls() {
 	router.GET("/users/:user_id", users.GetUser)
 	router.GET("/users/find/:status", users.FindByStatus)
 	router.GET("/thirdparty/reqres/get", thirdparty.GetListUser)
+	router.POST("/worker/savecsv", workerpool.Simpan)
 }
