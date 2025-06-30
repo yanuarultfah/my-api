@@ -1,40 +1,80 @@
 package redis
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"my-api/domain/redis"
+	"my-api/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 )
 
-var ctx = context.Background()
-
-var rdb = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
-	Password: "",
-	DB:       0,
-})
-
-func RedisSet(c *gin.Context) {
-	key := "key-1-set"
-	data := "this is a test data"
-	err := rdb.Set(ctx, key, data, 0).Err()
-	if err != nil {
-		fmt.Printf("unable to SET data. error: %v", err)
+func CreateMovie(c *gin.Context) {
+	var movie redis.Movie
+	if err := c.ShouldBindJSON(&movie); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
-	log.Println("set operation success")
+
+	// if err := movie.CreateMovie(); err != nil {
+	// 	log.Printf("Error creating movie: %v", err)
+	// 	c.JSON(500, gin.H{"error": "Internal server error"})
+	// 	return
+	// }
+	result, saveData := service.MovieService.CreateMovie(movie)
+	if saveData != nil {
+		c.JSON(saveData.Status, saveData)
+	}
+	c.JSON(201, gin.H{"message": "Movie created successfully", "Data": result})
 }
 
-func RedisGet(c *gin.Context) {
-	key := "key-1-set"
-	data, err := rdb.Get(ctx, key).Result()
+func GetMovie(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "Movie ID is required"})
+	}
+	movie, err := service.MovieService.GetMovie(id)
 	if err != nil {
-		fmt.Printf("unable to GET data. error: %v", err)
+		c.JSON(err.Status, err)
+	}
+	c.JSON(200, gin.H{"message": "Movie retrived successfully", "Data": movie})
+}
+
+func GetMovies(c *gin.Context) {
+	movie := &redis.Movie{}
+	movies, err := service.MovieService.GetMovies(*movie)
+	if err != nil {
+		c.JSON(err.Status, err)
+	}
+	c.JSON(200, gin.H{"message": "Movies retrived successfully", "Data": movies})
+}
+
+func UpdateMovie(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "Movie ID is required"})
+	}
+	var movie redis.Movie
+	if err := c.ShouldBindJSON(&movie); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
-	log.Println("get operation success")
-	c.String(200, "Data from Redis: %s", data)
+	result, err := service.MovieService.UpdateMovie(id, movie)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(200, gin.H{"message": "Movie updated successfully", "Data": result})
+}
+
+func DeleteMovie(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": " Movie ID is required"})
+		return
+	}
+	if err := service.MovieService.DeleteMovie(id); err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(200, gin.H{"message": "Movie deleted successfully"})
+
 }

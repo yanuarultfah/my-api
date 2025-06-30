@@ -15,6 +15,9 @@ func mapUrls() {
 	router.GET("/users/find/:status", users.FindByStatus)
 	router.GET("/thirdparty/reqres/get", thirdparty.GetListUser)
 	router.POST("/worker/savecsv", workerpool.Simpan)
-	router.POST("/redis/set", redis.RedisSet)
-	router.GET("/redis/get", redis.RedisGet)
+	router.POST("/movie/create", redis.CreateMovie)
+	router.GET("/movie/:id", redis.GetMovie)
+	router.GET("/movies", redis.GetMovies)
+	router.POST("/movie/update/:id", redis.UpdateMovie)
+	router.POST("/movie/del/:id", redis.DeleteMovie)
 }
